@@ -1,0 +1,3 @@
+[console_scripts]
+mp3PCDLer = mp3PCDLer.__main__:main
+

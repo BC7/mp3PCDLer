@@ -1,0 +1,19 @@
+Metadata-Version: 1.1
+Name: mp3PCDLer
+Version: 0.0.1
+Summary:  Simple Front-End wrapper for downloading youtube videos/movies based off of rg3's yt-dl Command Line Application 
+Home-page: https://github.com/BC7/mp3PCDLer
+Author: BC7
+Author-email: brian.ngobidi@gmail.com
+License: MIT
+Description: UNKNOWN
+Keywords: youtube mp3 downloading ID3 tag editting
+Platform: UNKNOWN
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Topic :: Desktop Environment :: File Managers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5

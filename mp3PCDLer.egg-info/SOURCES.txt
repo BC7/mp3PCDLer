@@ -1,0 +1,12 @@
+setup.py
+mp3PCDLer/__init__.py
+mp3PCDLer/__main__.py
+mp3PCDLer/id3Updater.py
+mp3PCDLer/mp3PCDLer.py
+mp3PCDLer/pref.json
+mp3PCDLer.egg-info/PKG-INFO
+mp3PCDLer.egg-info/SOURCES.txt
+mp3PCDLer.egg-info/dependency_links.txt
+mp3PCDLer.egg-info/entry_points.txt
+mp3PCDLer.egg-info/requires.txt
+mp3PCDLer.egg-info/top_level.txt
