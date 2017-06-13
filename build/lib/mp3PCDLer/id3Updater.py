@@ -2,14 +2,6 @@ import eyed3
 import os
 
 def updateID3(metadata):
-	# Test File location:
-	# /home/brizzy/CodeWork/python/yt-dl[Front-End]/Free.mp3
-
-
-	# fPath = str(input("Please enter File path: \n"))
-
-	# print(os.path.dirname(os.path.realpath(metadata["fileName"])))
-	# cwd = os.getcwd()
 	audiofile = eyed3.load(metadata["fileName"])
 	# audiofile.initTag()
 
