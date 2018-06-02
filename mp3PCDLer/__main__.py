@@ -35,8 +35,8 @@ def startDownload(urlString, metadata):
     print("\n**Process Complete**")
 
 def my_hook(d):
-    global dlStartStatus
-    global dlFinishStatus
+    dlStartStatus = False
+    dlFinishStatus = False
 
     if d['status'] == 'downloading' and dlStartStatus == False:
         dlStartStatus = True
@@ -58,8 +58,17 @@ class MyLogger(object):
 
 
 class Application(tk.Frame):
+    
+
     def __init__(self, master = None):
         tk.Frame.__init__(self, master)
+
+        self.rootDir = os.path.dirname(os.path.realpath(__file__))
+        self.downloadDir = ''
+
+        with open(self.rootDir + "/pref.json", 'r+') as pref_data:
+            d = json.load(pref_data)
+            self.downloadDir = d['download_location']
 
         defaultBG="#3399ff"
         # self.parent = master
@@ -103,17 +112,18 @@ class Application(tk.Frame):
 
     def find_directory(self):
         # get install location
-        rd = os.path.dirname(os.path.realpath(__file__))
 
-        directory = tk.filedialog.askdirectory()
-        with open(rd + "/pref.json", 'r+') as pref_data:
+        print('line 108 + ' + self.rootDir)
+        with open(self.rootDir + "/pref.json", 'r+') as pref_data:
             d = json.load(pref_data)
-            d["download_location"] = directory
+            os.chdir(d["download_location"])
+            d["download_location"] = tk.filedialog.askdirectory()
+            self.downloadDir = d['download_location']
+            os.chdir(self.rootDir)
             pref_data.seek(0)
             json.dump(d, pref_data)
             pref_data.truncate()
-            os.chdir(directory)
-            print("Working in : " + os.getcwd())
+            print("Working in : " + os.getcwd() + '\n But new download location is ' + d['download_location'])
 
     def dl_click(self):
         # collect optional id3 tags
@@ -147,9 +157,9 @@ class Application(tk.Frame):
     
         
 
-def pref():
-    prefWindow = Preferences()
-    prefWindow.mainloop()
+# def pref():
+    # prefWindow = Preferences()
+    # prefWindow.mainloop()
 
 def main(args=None):
     """The main routine."""
@@ -165,11 +175,16 @@ def main(args=None):
     cwd = os.path.dirname(os.path.realpath(__file__))
     print(cwd)
     # download movies to temp before moving elswhere
-    with open(cwd + "/pref.json") as pref_data:
+    with open(cwd + "/pref.json", 'r+') as pref_data:
         d = json.load(pref_data)
+        print(json.dumps(d))
+        d["install_location"] = cwd
         cwd = d["download_location"]
-        os.chdir(cwd)
+        # os.chdir(cwd)
         print("Working in : " + os.getcwd())
+        updated = json.dumps(d,separators=(', ', ': ')).replace(', ', ', \n').replace('{', '{ \n').replace('}','\n}')
+        pref_data.seek(0)
+        pref_data.write(updated)
 
     dlStartStatus = False
     dlFinishStatus = False
