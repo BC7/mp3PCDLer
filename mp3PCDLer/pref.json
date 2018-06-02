@@ -1,0 +1,4 @@
+{
+    "download_location" : "/home",
+    "sample" : "/path/to/download/directory(change before running 'python setup.py install'"
+}
