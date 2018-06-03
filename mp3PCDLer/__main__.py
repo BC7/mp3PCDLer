@@ -4,6 +4,7 @@ import sys
 import tkinter as tk
 import youtube_dl
 import os
+import sys
 import json
 from mp3PCDLer import id3Updater
 from tkinter import filedialog
@@ -11,7 +12,9 @@ from tkinter import filedialog
 
 def startDownload(urlString, metadata):
 
-    global cwd
+    global rootDir
+    global fileName
+
     ydl_opts = {
     'format': 'bestaudio/best',
     'postprocessors': [{
@@ -26,25 +29,29 @@ def startDownload(urlString, metadata):
 
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(urlString)
-        sdlTitle = info_dict.get('title', None)
+        # fileName = info_dict.get('title', None) + '.mp3'
         ydl.download([urlString])
 
-    print(sdlTitle + ' downloaded successfully. \nUpdating ID3 information\n')
-    metadata["fileName"] = sdlTitle + ".mp3"
-    id3Updater.updateID3(mp3Meta)
+    print(fileName + ' downloaded successfully. \nUpdating ID3 information\n')
+    id3Updater.updateID3(mp3Meta, fileName.replace('.webm', '.mp3'))
+    os.chdir(rootDir)
     print("\n**Process Complete**")
+    success = tk.Tk()
+    success.resizable(0,0)
+    success.title("SUCCESS!")
+    m = tk.Message(success, text= "**Process Complete**\n\nTitle: " + mp3Meta['title'] + '\nArtist: ' + mp3Meta['artist'] + '\nAlbum: ' + mp3Meta['album'] + '\nGenre: ' + mp3Meta['genre'])
+    m.config(anchor='center', font=('Helvetica', 16), pady=7, padx=8, width=500)
+    m.pack()
 
 def my_hook(d):
-    dlStartStatus = False
-    dlFinishStatus = False
+    global fileName
 
-    if d['status'] == 'downloading' and dlStartStatus == False:
-        dlStartStatus = True
-        print("Download started - " + d['filename'])
-    elif d['status'] == 'finished' and dlFinishStatus == False:
-        dlFinishStatus = True
-        print('Done downloading file, now converting to mp3...')
-        global mp3Meta
+    if d['status'] == 'finished':
+        # print(json.dumps(d))
+        fileName = d['filename']
+    else:
+        sys.stdout.write('\rDownloading ' + d['filename'] + ' : ' + d['_percent_str'] + ' Complete ')
+        sys.stdout.flush()
 
 class MyLogger(object):
 	def debug(self, msg):
@@ -63,15 +70,13 @@ class Application(tk.Frame):
     def __init__(self, master = None):
         tk.Frame.__init__(self, master)
 
-        self.rootDir = os.path.dirname(os.path.realpath(__file__))
-        self.downloadDir = ''
         self.relief = 'SUNKEN'
-        with open(self.rootDir + "/pref.json", 'r+') as pref_data:
+        with open(rootDir + "/pref.json", 'r+') as pref_data:
             d = json.load(pref_data)
-            self.downloadDir = d['download_location']
+            downloadDir = d['download_location']
 
         defaultBG= "#d3d3d3" #"#3399ff"
-        # self.parent = master
+        
         self.pack(expand="true", fill="both")
         self.configure(bg=defaultBG)
 
@@ -111,34 +116,34 @@ class Application(tk.Frame):
         #   self.grid_columnconfigure(i, weight=1, uniform="main")
 
     def find_directory(self):
-        # get install location
-
-        print('line 108 + ' + self.rootDir)
-        with open(self.rootDir + "/pref.json", 'r+') as pref_data:
+        
+        print('line 108 + ' + rootDir)
+        with open(rootDir + "/pref.json", 'r+') as pref_data:
             d = json.load(pref_data)
             if len(d["download_location"]) > 0 :
                 os.chdir(d["download_location"])
             else :
                 os.chdir(d["install_location"])
             d["download_location"] = tk.filedialog.askdirectory()
-            self.downloadDir = d['download_location']
-            os.chdir(self.rootDir)
+            downloadDir = d['download_location']
+            os.chdir(rootDir)
             updated = json.dumps(d,separators=(', ', ': ')).replace(', ', ', \n').replace('{', '{ \n').replace('}','\n}')
             pref_data.seek(0)
-            # json.dump(d, pref_data)
-            pref_data.writelines(updated)
-            print("Working in : " + os.getcwd() + '\n But new download location is ' + d['download_location'])
+            pref_data.write(updated)
 
     def dl_click(self):
         # collect optional id3 tags
-        global mp3Meta
+        global downloadDir
+        
         mp3Meta["title"] = self.titleEntry.get()
         mp3Meta["artist"] = self.artistEntry.get()
         mp3Meta["album"] = self.albumEntry.get()
         mp3Meta["genre"] = self.genreEntry.get()
+        
+        os.chdir(downloadDir)
         startDownload(self.urlEntry.get(), mp3Meta)
 
-
+# ToDo - Complete prefence windo
 # class Preferences(tk.Frame):
 #     def __init__(self, master = None):
 #         tk.Frame.__init__(self, master)
@@ -160,7 +165,7 @@ class Application(tk.Frame):
 #         directorySelectButton = tk.Button(window, command= lambda: self.find_directory(), bd=0, bg=defaultBG, text="Choose Directory").grid(row=0,column=3, sticky="sw")
     
         
-
+#ToDo implement preferences
 # def pref():
     # prefWindow = Preferences()
     # prefWindow.mainloop()
@@ -170,21 +175,23 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
 
+    global downloadDir
+    global rootDir
     global cwd
     global mp3Meta
     global dlStartStatus
     global dlFinishStatus
 
     # get install location
-    cwd = os.path.dirname(os.path.realpath(__file__))
-    print(cwd)
+    rootDir = os.path.dirname(os.path.realpath(__file__))
     
-    with open(cwd + "/pref.json", 'r+') as pref_data:
+    with open(rootDir + "/pref.json", 'r+') as pref_data:
         d = json.load(pref_data)
-        d["install_location"] = cwd
-        # cwd = d["download_location"]
-        # os.chdir(cwd)
-        print("Working in : " + os.getcwd())
+        d["install_location"] = rootDir
+        if len(d["download_location"]) > 0 :
+            downloadDir = d["download_location"]
+        else :
+            downloadDir = d["install_location"]
         updated = json.dumps(d,separators=(', ', ': ')).replace(', ', ', \n').replace('{', '{ \n').replace('}','\n}')
         pref_data.seek(0)
         pref_data.write(updated)
@@ -199,21 +206,18 @@ def main(args=None):
     "genre"  : "Unknown"}
 
     root = tk.Tk()
-    root.configure(width=350,height=110)
-    # root.configure(background='#000000',width='360')
+    root.configure(width=3550,height=110)
     for i in range(0,1):
         root.grid_columnconfigure(i, weight=1, uniform="main")
 
-    # create a toplevel menu
+    # ToDo - create a toplevel menu
     # menubar = tk.Menu(root)
     # menubar.add_command(label="Preferences", command=pref)
-
     # display the menu
     # root.config(menu=menubar)
 
-    # root.minsize(555, 110)
-    root.title("mp3DLer")
-    root.resizable(360,360)
+    root.title("mp3PCDLer")
+    root.resizable(0,0)
     app = Application()
     app.mainloop()
 
