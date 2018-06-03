@@ -65,47 +65,47 @@ class Application(tk.Frame):
 
         self.rootDir = os.path.dirname(os.path.realpath(__file__))
         self.downloadDir = ''
-
+        self.relief = 'SUNKEN'
         with open(self.rootDir + "/pref.json", 'r+') as pref_data:
             d = json.load(pref_data)
             self.downloadDir = d['download_location']
 
-        defaultBG="#3399ff"
+        defaultBG= "#d3d3d3" #"#3399ff"
         # self.parent = master
         self.pack(expand="true", fill="both")
         self.configure(bg=defaultBG)
 
         # Declare Labels
         urlString = tk.StringVar()
-        urlLabel = tk.Label(self, pady=5, bg=defaultBG, text="Youtube URL: ").grid(row=0,column=0, sticky="w")
-        songTitleLabel = tk.Label(self, pady=5, bg=defaultBG, text="Title: ").grid(row=1,column=0, sticky="w")
-        songArtistLabel = tk.Label(self, pady=5, bg=defaultBG, text="Artist: ").grid(row=2,column=0, sticky="w")
-        songAlbumLabel = tk.Label(self, pady=5, bg=defaultBG, text="Album: ").grid(row=3,column=0, sticky="w")
-        songGenreLabel = tk.Label(self, pady=5, bg=defaultBG,text="Genre: ").grid(row=4,column=0, sticky="w")
+        urlLabel = tk.Label(self, padx=10, pady=10, width=12, anchor='center', font=('Helvetica', 20), bg=defaultBG, text="Youtube URL: ").grid(row=0,column=0, sticky="w")
+        songTitleLabel = tk.Label(self, pady=10, width=12, anchor="e", font=('Helvetica', 20), bg=defaultBG, text="Title: ").grid(row=2,column=0, sticky="w")
+        songArtistLabel = tk.Label(self, padx=10, width=12, pady=10, anchor="e", font=('Helvetica', 20), bg=defaultBG, text="Artist: ").grid(row=3,column=0, sticky="w")
+        songAlbumLabel = tk.Label(self, padx=10, width=12, pady=10, anchor="e", font=('Helvetica', 20), bg=defaultBG, text="Album: ").grid(row=4,column=0, sticky="w")
+        songGenreLabel = tk.Label(self, padx=10, width=12, pady=10, anchor="e", font=('Helvetica', 20), bg=defaultBG,text="Genre: ").grid(row=5,column=0, sticky="w")
 
         # Declare entry widgets
-        self.urlEntry = tk.Entry(self, textvariable=urlString, selectborderwidth="2",justify="left")
-        self.titleEntry = tk.Entry(self)
-        self.artistEntry = tk.Entry(self)
-        self.albumEntry = tk.Entry(self)
-        self.genreEntry = tk.Entry(self)
+        self.urlEntry = tk.Entry(self, textvariable=urlString, font=('Helvetica', 18), width=40, selectborderwidth="2",justify="left")
+        self.titleEntry = tk.Entry(self, font=('Helvetica', 18))
+        self.artistEntry = tk.Entry(self, font=('Helvetica', 18))
+        self.albumEntry = tk.Entry(self, font=('Helvetica', 18))
+        self.genreEntry = tk.Entry(self, font=('Helvetica', 18))
 
         # Add Entry Widgets to Frame (separated for ease of readability and accessing entry values
-        self.urlEntry.grid(row=0,column=1, columnspan=4, sticky="w")
-        self.titleEntry.grid(row=1,column=1, sticky="w")
-        self.artistEntry.grid(row=2,column=1, sticky="w")
-        self.albumEntry.grid(row=3, column=1, sticky="w")
-        self.genreEntry.grid(row=4,column=1, sticky="w")
+        self.urlEntry.grid(row=1,column=0, columnspan=4, sticky="w")
+        self.titleEntry.grid(row=2,column=1, sticky="w")
+        self.artistEntry.grid(row=3,column=1, sticky="w")
+        self.albumEntry.grid(row=4, column=1, sticky="w")
+        self.genreEntry.grid(row=5,column=1, sticky="w")
 
         # sourceCheck = tk.StringVar().set("web")
         # formatCheck = tk.StringVar().set("mp3")
 
         # dlFormatCheck = tk.Checkbutton(self, variable=formatCheck,offvalue="mp3", onvalue="mp4", bg=defaultBG, text="Save as videos (.mp4)").grid(row=5, columnspan=3, column=0, sticky="w")
         # automatedDLCheck = tk.Checkbutton(self, variable=sourceCheck,offvalue="web", onvalue="local", bg=defaultBG, text="Download multiple from list (insert filepath in URL)").grid(row=6, columnspan=3, column=0, sticky="w")
-        dlButton = tk.Button(self, command= lambda: self.dl_click(), bd=0, bg=defaultBG, text="Download").grid(row=7,column=0, sticky="sw")
+        dlButton = tk.Button(self, command= lambda: self.dl_click(), bd=0, font=('Helvetica', 14), bg=defaultBG, text="Download").grid(row=7,column=1, sticky="se")
         # dlButton.config(highlightbackground=defaultBG)
 
-        prefButton = tk.Button(self, command= lambda: self.find_directory(),bd=0, bg=defaultBG, text="Set Dowload Directory").grid(row=7,column=1, sticky="se")
+        prefButton = tk.Button(self, command= lambda: self.find_directory(),bd=0, font=('Helvetica', 14), bg=defaultBG, text="Set Dowload Directory").grid(row=7,column=0, sticky="sw")
         # self.config(highlightbackground=defaultBG)
         # for i in range(0,3):
         #   self.grid_columnconfigure(i, weight=1, uniform="main")
@@ -116,13 +116,17 @@ class Application(tk.Frame):
         print('line 108 + ' + self.rootDir)
         with open(self.rootDir + "/pref.json", 'r+') as pref_data:
             d = json.load(pref_data)
-            os.chdir(d["download_location"])
+            if len(d["download_location"]) > 0 :
+                os.chdir(d["download_location"])
+            else :
+                os.chdir(d["install_location"])
             d["download_location"] = tk.filedialog.askdirectory()
             self.downloadDir = d['download_location']
             os.chdir(self.rootDir)
+            updated = json.dumps(d,separators=(', ', ': ')).replace(', ', ', \n').replace('{', '{ \n').replace('}','\n}')
             pref_data.seek(0)
-            json.dump(d, pref_data)
-            pref_data.truncate()
+            # json.dump(d, pref_data)
+            pref_data.writelines(updated)
             print("Working in : " + os.getcwd() + '\n But new download location is ' + d['download_location'])
 
     def dl_click(self):
@@ -174,12 +178,11 @@ def main(args=None):
     # get install location
     cwd = os.path.dirname(os.path.realpath(__file__))
     print(cwd)
-    # download movies to temp before moving elswhere
+    
     with open(cwd + "/pref.json", 'r+') as pref_data:
         d = json.load(pref_data)
-        print(json.dumps(d))
         d["install_location"] = cwd
-        cwd = d["download_location"]
+        # cwd = d["download_location"]
         # os.chdir(cwd)
         print("Working in : " + os.getcwd())
         updated = json.dumps(d,separators=(', ', ': ')).replace(', ', ', \n').replace('{', '{ \n').replace('}','\n}')
@@ -196,9 +199,8 @@ def main(args=None):
     "genre"  : "Unknown"}
 
     root = tk.Tk()
-    # root.configure(width=350,height=110)
+    root.configure(width=350,height=110)
     # root.configure(background='#000000',width='360')
-    #root.resizable(0,0)
     for i in range(0,1):
         root.grid_columnconfigure(i, weight=1, uniform="main")
 
@@ -211,7 +213,7 @@ def main(args=None):
 
     # root.minsize(555, 110)
     root.title("mp3DLer")
-    root.resizable(0,0)
+    root.resizable(360,360)
     app = Application()
     app.mainloop()
 
